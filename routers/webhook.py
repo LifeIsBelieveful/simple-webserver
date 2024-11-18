@@ -84,7 +84,7 @@ async def get_coinprice(request: Request):
         # 결과 반환
         return {
             "response_type": "in_channel",  # Dooray 슬래시 커맨드에서 결과를 공개
-            "deleteOriginal": 'true',
+            "deleteOriginal": True,
             "text": f"{coin_name}의 현재 가격은 {trade_price:,.0f}원입니다.",
             "attachments": [
                 {
