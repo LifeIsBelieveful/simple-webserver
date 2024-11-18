@@ -19,61 +19,64 @@ def get_coin_market_code(name: str = '비트코인'):
     return krw_markets[0] if krw_markets else (markets[0] if markets else None)
 
 @router.post("/coinprice")
-async def get_coinprice(command: str = Form(...), text: str = Form(...)):
-    try:
-        # 슬래시 커맨드의 입력 처리
-        params = text.split()
-        if len(params) != 2:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid input format. Use: <coin_name> <purchase_price>"
-            )
+async def get_coinprice(request: Request):
+    body = await request.body()  # 요청 바디 전체 확인
+    print(f"Request Body: {body}")
 
-        coin_name = params[0]
-        try:
-            purchase_price = float(params[1])
-        except ValueError:
-            raise HTTPException(
-                status_code=400,
-                detail="Purchase price must be a valid number."
-            )
-
-        # 코인 시장 코드 조회
-        code = get_coin_market_code(coin_name)
-        if not code:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid coin name: {coin_name}"
-            )
-
-        # 현재 가격 조회
-        url = f"{UPBIT_ENDPOINT}/ticker?markets={code}"
-        response = requests.get(url)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=f"Upbit API 호출 실패: {response.text}")
-
-        data = response.json()
-        trade_price = data[0]["trade_price"]
-
-        # 가격 차이 및 상승률 계산
-        price_difference = trade_price - purchase_price
-        increase_rate = (price_difference / purchase_price) * 100
-
-        # 결과 반환
-        return {
-            "response_type": "in_channel",  # Dooray 슬래시 커맨드에서 결과를 공개
-            "text": f"{coin_name}의 현재 가격은 {trade_price:,.0f} 원입니다.",
-            "attachments": [
-                {
-                    "text": f"구매 가격: {purchase_price:,.0f} 원\n"
-                            f"가격 차이: {price_difference:,.0f} 원\n"
-                            f"상승률: {increase_rate:,.2f}%"
-                }
-            ]
-        }
-    except Exception as e:
-        print(f"에러 발생: {e}")
-        raise HTTPException(status_code=500, detail=f"서버 처리 중 에러 발생: {e}")
+    # try:
+    #     # 슬래시 커맨드의 입력 처리
+    #     params = text.split()
+    #     if len(params) != 2:
+    #         raise HTTPException(
+    #             status_code=400,
+    #             detail="Invalid input format. Use: <coin_name> <purchase_price>"
+    #         )
+    #
+    #     coin_name = params[0]
+    #     try:
+    #         purchase_price = float(params[1])
+    #     except ValueError:
+    #         raise HTTPException(
+    #             status_code=400,
+    #             detail="Purchase price must be a valid number."
+    #         )
+    #
+    #     # 코인 시장 코드 조회
+    #     code = get_coin_market_code(coin_name)
+    #     if not code:
+    #         raise HTTPException(
+    #             status_code=400,
+    #             detail=f"Invalid coin name: {coin_name}"
+    #         )
+    #
+    #     # 현재 가격 조회
+    #     url = f"{UPBIT_ENDPOINT}/ticker?markets={code}"
+    #     response = requests.get(url)
+    #     if response.status_code != 200:
+    #         raise HTTPException(status_code=response.status_code, detail=f"Upbit API 호출 실패: {response.text}")
+    #
+    #     data = response.json()
+    #     trade_price = data[0]["trade_price"]
+    #
+    #     # 가격 차이 및 상승률 계산
+    #     price_difference = trade_price - purchase_price
+    #     increase_rate = (price_difference / purchase_price) * 100
+    #
+    #     # 결과 반환
+    #     return {
+    #         "response_type": "in_channel",  # Dooray 슬래시 커맨드에서 결과를 공개
+    #         "text": f"{coin_name}의 현재 가격은 {trade_price:,.0f} 원입니다.",
+    #         "attachments": [
+    #             {
+    #                 "text": f"구매 가격: {purchase_price:,.0f} 원\n"
+    #                         f"가격 차이: {price_difference:,.0f} 원\n"
+    #                         f"상승률: {increase_rate:,.2f}%"
+    #             }
+    #         ]
+    #     }
+    # except Exception as e:
+    #     print(f"에러 발생: {e}")
+    #     raise HTTPException(status_code=500, detail=f"서버 처리 중 에러 발생: {e}")
 
 # @router.post("/coinprice")
 # async def get_coinprice(request: CoinPriceRequest):
