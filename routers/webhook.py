@@ -60,35 +60,39 @@ def get_coin_market_code(name: str= '비트코인'):
 @router.post("/coinprice")
 async def get_coinprice(coin_name: str = Query(..., description="코인명 (예: 비트코인)"),
     purchase_price: float = Query(..., description="구매 당시 가격")):
-    print(f"파라미터 출력: {coin_name}, {purchase_price}")
+    try:
+        print(f"받은 파라미터 - coin_name: {coin_name}, purchase_price: {purchase_price}")
 
-    request = CoinPriceRequest(coin_name=coin_name, purchase_price=purchase_price)
+        request = CoinPriceRequest(coin_name=coin_name, purchase_price=purchase_price)
 
-    code = get_coin_market_code(request.coin_name)
-    print(f"코드 조회 결과: {code}")
+        code = get_coin_market_code(request.coin_name)
+        print(f"코드 조회 결과: {code}")
 
-    url = f"{UPBIT_ENDPOINT}/ticker?markets={code}"
-    print(f"api 호출 Url: {url}")
-    response = requests.get(url)
-    print(f"api 호출 response: {response}")
-    print(f"api 호출 response 코드: {response.status_code}")
-    print(f"api 호출 response 메시지: {response.text}")
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=f"Dooray API call failed: {response.text}")
+        url = f"{UPBIT_ENDPOINT}/ticker?markets={code}"
+        print(f"api 호출 Url: {url}")
+        response = requests.get(url)
+        print(f"api 호출 response: {response}")
+        print(f"api 호출 response 코드: {response.status_code}")
+        print(f"api 호출 response 메시지: {response.text}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Dooray API call failed: {response.text}")
 
-    data = response.json()
-    trade_price = data[0]["trade_price"]
-    print(f"현재 가격: {trade_price}")
+        data = response.json()
+        trade_price = data[0]["trade_price"]
+        print(f"현재 가격: {trade_price}")
 
-    # 가격 차이 계산
-    price_difference = trade_price - request.purchase_price
-    increase_rate = (price_difference / request.purchase_price) * 100
+        # 가격 차이 계산
+        price_difference = trade_price - request.purchase_price
+        increase_rate = (price_difference / request.purchase_price) * 100
 
-    return {
-        "coin_name":request.coin_name,
-        "market_code":code,
-        "trade_price": f"{trade_price:,.0f}",  # 천 단위 쉼표 추가
-        "purchase_price": f"{request.purchase_price:,.0f}",  # 천 단위 쉼표 추가
-        "price_difference": f"{price_difference:,.0f}",  # 천 단위 쉼표 추가
-        "increase_rate": f"{increase_rate:,.2f}%"
-    }
+        return {
+            "coin_name":request.coin_name,
+            "market_code":code,
+            "trade_price": f"{trade_price:,.0f}",  # 천 단위 쉼표 추가
+            "purchase_price": f"{request.purchase_price:,.0f}",  # 천 단위 쉼표 추가
+            "price_difference": f"{price_difference:,.0f}",  # 천 단위 쉼표 추가
+            "increase_rate": f"{increase_rate:,.2f}%"
+        }
+    except Exception as e:
+            print(f"에러 발생: {e}")
+            raise HTTPException(status_code=500, detail=f"서버 처리 중 에러 발생: {e}")
