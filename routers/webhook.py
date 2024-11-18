@@ -84,11 +84,11 @@ async def get_coinprice(request: Request):
         # 결과 반환
         return {
             "response_type": "in_channel",  # Dooray 슬래시 커맨드에서 결과를 공개
-            "text": f"{coin_name}의 현재 가격은 {trade_price:,.0f} 원입니다.",
+            "text": f"{coin_name}의 현재 가격은 {trade_price:,.0f}원입니다.",
             "attachments": [
                 {
-                    "text": f"구매 가격: {purchase_price:,.0f} 원\n"
-                            f"가격 차이: {price_difference:,.0f} 원\n"
+                    "text": f"구매 가격: {purchase_price:,.0f}원\n"
+                            f"가격 차이: {price_difference:,.0f}원\n"
                             f"상승률: {increase_rate:,.2f}%"
                 }
             ]
