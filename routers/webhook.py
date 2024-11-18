@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, Request, BackgroundTasks
+
 import requests
 from common.consts import DOORAY_ENDPOINT, DOORAY_API_KEY, DAYOFF_CAL_ID, UPBIT_ENDPOINT
+from models.models import CoinPriceRequest
 
 router = APIRouter(prefix='/webhook', tags=['webhook'])
 
@@ -46,7 +48,6 @@ async def get_calendar():
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
 
-
 def get_coin_market_code(name: str= '비트코인'):
     url = f"{UPBIT_ENDPOINT}/market/all?isDetails=false"
     response = requests.get(url)
@@ -56,10 +57,13 @@ def get_coin_market_code(name: str= '비트코인'):
     krw_markets = [market for market in markets if market.startswith('KRW')]
 
     return krw_markets[0] if krw_markets else (markets[0] if markets else None)
-@router.get("/coinprice")
+@router.post("/coinprice")
 async def get_coinprice(coin_name: str = Query(..., description="코인명 (예: 비트코인)"),
-                        purchase_price: float = Query(..., description="구매 당시 가격")):
-    code = get_coin_market_code(coin_name)
+    purchase_price: float = Query(..., description="구매 당시 가격")):
+
+    request = CoinPriceRequest(coin_name=coin_name, purchase_price=purchase_price)
+
+    code = get_coin_market_code(request.coin_name)
     print(f"코드 조회 결과: {code}")
 
     url = f"{UPBIT_ENDPOINT}/ticker?markets={code}"
@@ -76,14 +80,14 @@ async def get_coinprice(coin_name: str = Query(..., description="코인명 (예:
     print(f"현재 가격: {trade_price}")
 
     # 가격 차이 계산
-    price_difference = trade_price - purchase_price
-    increase_rate = (price_difference / purchase_price) * 100
+    price_difference = trade_price - request.purchase_price
+    increase_rate = (price_difference / request.purchase_price) * 100
 
     return {
-        "coin_name":coin_name,
+        "coin_name":request.coin_name,
         "market_code":code,
         "trade_price": f"{trade_price:,.0f}",  # 천 단위 쉼표 추가
-        "purchase_price": f"{purchase_price:,.0f}",  # 천 단위 쉼표 추가
+        "purchase_price": f"{request.purchase_price:,.0f}",  # 천 단위 쉼표 추가
         "price_difference": f"{price_difference:,.0f}",  # 천 단위 쉼표 추가
         "increase_rate": f"{increase_rate:,.2f}%"
     }
