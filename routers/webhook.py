@@ -17,7 +17,11 @@ def call_dooray_api(time_min: str, time_max: str, calendar_id: str):
     headers = {
         'Authorization': f'dooray-api {DOORAY_API_KEY}'
     }
+    print(f"api 호출 Url: {url}")
+    print(f"api 호출 headers: {headers}")
+    print(f"api 호출 params: {params}")
     response = requests.get(url, headers=headers, params=params)
+    print(f"api 호출 response: {response}")
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=f"Dooray API call failed: {response.text}")
     return response.json()
