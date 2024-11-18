@@ -60,6 +60,7 @@ def get_coin_market_code(name: str= '비트코인'):
 @router.post("/coinprice")
 async def get_coinprice(coin_name: str = Query(..., description="코인명 (예: 비트코인)"),
     purchase_price: float = Query(..., description="구매 당시 가격")):
+    print(f"파라미터 출력: {coin_name}, {purchase_price}")
 
     request = CoinPriceRequest(coin_name=coin_name, purchase_price=purchase_price)
 
